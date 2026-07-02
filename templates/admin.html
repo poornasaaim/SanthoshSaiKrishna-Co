@@ -672,7 +672,7 @@
                 <span class="icon">🎟️</span> Coupons
             </div>
             <div class="sidebar-footer">
-                <a href="/" class="exit-btn">← Exit to Website</a>
+                <button onclick="adminLogout()" class="exit-btn" style="width:100%;">← Exit to Website</button>
             </div>
         </aside>
 
@@ -1010,6 +1010,11 @@
     <div id="toast" class="toast"></div>
 
     <script>
+        function adminLogout() {
+            fetch('/admin/logout')
+                .then(() => window.location.href = '/');
+        }
+
         // ====== TAB SWITCHING ======
         function switchTab(tabName) {
             // Hide all panels

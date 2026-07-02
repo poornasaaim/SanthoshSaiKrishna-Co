@@ -535,7 +535,7 @@
         let currentCategory = null;
 
         window.onload = () => {
-            const user = JSON.parse(localStorage.getItem('sskc_user'));
+            const user = JSON.parse(sessionStorage.getItem('sskc_user'));
             if(!user) { window.location.href = '/'; return; }
             document.getElementById('user-greeting').innerText = `Hello, ${user.Full_Name}`;
             updateCartCount();

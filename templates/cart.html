@@ -516,7 +516,7 @@
         let currentStep = 1;
 
         window.onload = () => {
-            currentUser = JSON.parse(localStorage.getItem('sskc_user'));
+            currentUser = JSON.parse(sessionStorage.getItem('sskc_user'));
             if(!currentUser) { 
                 alert("Please login first!");
                 window.location.href = '/'; 

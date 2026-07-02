@@ -705,7 +705,7 @@
 
         // Login status check
         function checkLoginStatus() {
-            const user = JSON.parse(localStorage.getItem('sskc_user'));
+            const user = JSON.parse(sessionStorage.getItem('sskc_user'));
             const btn = document.getElementById('auth-btn');
             const logoutBtn = document.getElementById('logout-btn');
             if(user) {
@@ -717,7 +717,7 @@
         window.onload = checkLoginStatus;
 
         function logout() {
-            localStorage.removeItem('sskc_user');
+            sessionStorage.removeItem('sskc_user');
             window.location.reload();
         }
 
@@ -763,7 +763,7 @@
             }).then(res => res.json()).then(data => {
                 if(data.status === 'success') {
                     if(action === 'login') {
-                        localStorage.setItem('sskc_user', JSON.stringify(data.user));
+                        sessionStorage.setItem('sskc_user', JSON.stringify(data.user));
                         showToast("Login Successful!");
                         setTimeout(() => window.location.href = '/shop', 1000);
                     } else {
