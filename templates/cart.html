@@ -497,7 +497,7 @@
             <p style="color:var(--text-secondary); margin-bottom: 8px;">Scan the QR code and pay</p>
             <div class="qr-amount">₹<span id="final-pay-display">0</span></div>
             
-            <img src="{{ settings['UPI_QR_Image_URL'] }}" class="qr-placeholder" alt="UPI QR Code">
+            <img src="{{ url_for('static', filename='images/upi_qr.png') }}" class="qr-placeholder" alt="UPI QR Code">
             
             <p class="qr-note">Once paid, click the button below. It will open WhatsApp with your order details so you can send us the payment screenshot.</p>
             
@@ -549,7 +549,13 @@
         }
 
         function goToStep(step) {
-            if(step === 2 && cart.length === 0) return showToast("Your bag is empty!");
+            if(step === 2) {
+                if(cart.length === 0) return showToast("Your bag is empty!");
+                const subtotal = parseInt(document.getElementById('sub-total').innerText);
+                if(subtotal < 500) {
+                    return showToast("Minimum order value is ₹500. Please add more items.");
+                }
+            }
             if(step === 3) {
                 if(!document.getElementById('address').value || !document.getElementById('pincode').value) {
                     return showToast("Please fill address and pincode");

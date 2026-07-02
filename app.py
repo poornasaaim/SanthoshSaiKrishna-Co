@@ -5,6 +5,7 @@ import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 from datetime import datetime
 from dotenv import load_dotenv
+import qrcode
 
 # Load environment variables from .env file
 load_dotenv()
@@ -12,6 +13,14 @@ load_dotenv()
 app = Flask(__name__)
 # Get secret key from .env, with a fallback
 app.secret_key = os.environ.get("SECRET_KEY", "fallback_insecure_key")
+
+# Generate UPI QR Code on startup
+qr_path = os.path.join(os.path.dirname(__file__), 'static', 'images', 'upi_qr.png')
+if not os.path.exists(qr_path):
+    os.makedirs(os.path.dirname(qr_path), exist_ok=True)
+    upi_url = "upi://pay?pa=cnb.912120263859@cnrb&pn=SANTHOSH SAI KRISHNA AND CO&mc=9402&tr=1234567887654321&am=0&mam=0&cu=INR&refUrl=http://npci.org/upi/schema/"
+    img = qrcode.make(upi_url)
+    img.save(qr_path)
 
 # Google Sheets Connection
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
