@@ -457,6 +457,19 @@
             .controls { flex-direction: column; gap: 6px; }
             .cart-btn { padding: 8px 14px; font-size: 0.82rem; }
         }
+        @keyframes pulseGlow {
+            0% { text-shadow: 0 0 10px rgba(13,159,110,0.3); transform: scale(1); }
+            50% { text-shadow: 0 0 20px rgba(13,159,110,0.8); transform: scale(1.02); }
+            100% { text-shadow: 0 0 10px rgba(13,159,110,0.3); transform: scale(1); }
+        }
+        .trending-card {
+            box-shadow: 0 0 15px rgba(13,159,110,0.15);
+            border: 1px solid rgba(13,159,110,0.3);
+        }
+        .trending-card:hover {
+            box-shadow: 0 0 25px rgba(13,159,110,0.4);
+            border: 1px solid rgba(13,159,110,0.6);
+        }
     </style>
 </head>
 <body>
@@ -482,6 +495,16 @@
     <div class="container search-wrapper">
         <span class="search-icon">🔍</span>
         <input type="text" id="search-input" class="search-input" placeholder="Search for products, categories, or keywords..." onkeyup="searchProducts()">
+    </div>
+
+    <!-- Trending View -->
+    <div class="container" id="trending-view">
+        <div class="section-header">
+            <h2 class="section-title" style="color: var(--accent); text-shadow: 0 0 15px rgba(13,159,110,0.6); display: flex; align-items: center; gap: 10px; animation: pulseGlow 2s infinite;">
+                <span style="font-size: 1.6rem;">🔥</span> Trending Items
+            </h2>
+        </div>
+        <div class="grid" id="trending-grid"></div>
     </div>
 
     <!-- Categories View -->
@@ -540,6 +563,7 @@
             document.getElementById('user-greeting').innerText = `Hello, ${user.Full_Name}`;
             updateCartCount();
             renderCategories();
+            renderTrendingItems();
             
             let currentSlide = 0;
             const carousel = document.getElementById('shop-carousel');
@@ -612,8 +636,8 @@
             `).join('');
         }
 
-        function renderProductGrid(products) {
-            const grid = document.getElementById('product-grid');
+        function renderProductGrid(products, containerId = 'product-grid', cardClass = '', prefix = '') {
+            const grid = document.getElementById(containerId);
             if(products.length === 0) {
                 grid.innerHTML = "<p class='empty-message'>No products found matching your search.</p>";
                 return;
@@ -622,31 +646,48 @@
             grid.innerHTML = products.map((p, i) => {
                 const optionsHtml = p.Weight_Options.map(w => `<option value="${w}">${w}</option>`).join('');
                 return `
-                <div class="prod-card" style="animation: fadeInUp 0.5s ease ${i * 0.06}s both;">
+                <div class="prod-card ${cardClass}" style="animation: fadeInUp 0.5s ease ${i * 0.06}s both;">
                     <div class="prod-img-wrapper">
                         <img src="${p.Image_URL}" class="prod-img" onclick="openModal('${p.Product_ID}')" alt="${p.Name}">
                     </div>
                     <div class="prod-body">
                         <h4 class="prod-name" onclick="openModal('${p.Product_ID}')">${p.Name}</h4>
-                        <div class="price-display">₹<span id="price-${p.Product_ID}">0</span></div>
+                        <div class="price-display">₹<span id="${prefix}price-${p.Product_ID}">0</span></div>
                         <div class="controls">
-                            <select id="weight-${p.Product_ID}" onchange="updateCardPrice('${p.Product_ID}', ${p.Price})">
+                            <select id="${prefix}weight-${p.Product_ID}" onchange="updateCardPrice('${p.Product_ID}', ${p.Price}, '${prefix}')">
                                 ${optionsHtml}
                             </select>
-                            <input type="number" id="qty-${p.Product_ID}" value="1" min="1" onchange="updateCardPrice('${p.Product_ID}', ${p.Price})">
+                            <input type="number" id="${prefix}qty-${p.Product_ID}" value="1" min="1" onchange="updateCardPrice('${p.Product_ID}', ${p.Price}, '${prefix}')">
                         </div>
-                        <button class="add-btn" onclick="addFromCard('${p.Product_ID}', '${p.Name}', '${p.Image_URL}')">Add to Bag</button>
+                        <button class="add-btn" onclick="addFromCard('${p.Product_ID}', '${p.Name}', '${p.Image_URL}', '${prefix}')">Add to Bag</button>
                     </div>
                 </div>
                 `;
             }).join('');
             
-            products.forEach(p => updateCardPrice(p.Product_ID, p.Price));
+            products.forEach(p => updateCardPrice(p.Product_ID, p.Price, prefix));
+        }
+
+        function renderTrendingItems() {
+            const keywords = ['dryfruit', 'badam', 'cashew full', 'cashew half', 'seed', 'hair control', 'sunflower', 'pumpkin', 'watermelon'];
+            const trendingProducts = allProducts.filter(p => {
+                const name = p.Name.toLowerCase();
+                const desc = p.Description.toLowerCase();
+                return keywords.some(k => name.includes(k) || desc.includes(k));
+            }).slice(0, 20); // max 20 products
+            
+            if (trendingProducts.length > 0) {
+                renderProductGrid(trendingProducts, 'trending-grid', 'trending-card', 't-');
+                document.getElementById('trending-view').style.display = 'block';
+            } else {
+                document.getElementById('trending-view').style.display = 'none';
+            }
         }
 
         function showProducts(category) {
             currentCategory = category;
             document.getElementById('search-input').value = '';
+            document.getElementById('trending-view').style.display = 'none';
             document.getElementById('category-view').style.display = 'none';
             document.getElementById('product-view').style.display = 'block';
             document.getElementById('current-category-title').innerText = category;
@@ -658,6 +699,7 @@
         function showCategories() {
             currentCategory = null;
             document.getElementById('search-input').value = '';
+            document.getElementById('trending-view').style.display = 'block';
             document.getElementById('category-view').style.display = 'block';
             document.getElementById('product-view').style.display = 'none';
         }
@@ -671,6 +713,7 @@
                 return;
             }
 
+            document.getElementById('trending-view').style.display = 'none';
             document.getElementById('category-view').style.display = 'none';
             document.getElementById('product-view').style.display = 'block';
             
@@ -690,17 +733,17 @@
         }
 
         // --- Card Logic ---
-        function updateCardPrice(id, basePrice) {
-            const weight = document.getElementById(`weight-${id}`).value;
-            const qty = parseInt(document.getElementById(`qty-${id}`).value) || 1;
+        function updateCardPrice(id, basePrice, prefix = '') {
+            const weight = document.getElementById(`${prefix}weight-${id}`).value;
+            const qty = parseInt(document.getElementById(`${prefix}qty-${id}`).value) || 1;
             const unitPrice = calculateDynamicPrice(basePrice, weight);
-            document.getElementById(`price-${id}`).innerText = unitPrice * qty;
+            document.getElementById(`${prefix}price-${id}`).innerText = unitPrice * qty;
         }
 
-        function addFromCard(id, name, image) {
-            const weight = document.getElementById(`weight-${id}`).value;
-            const qty = parseInt(document.getElementById(`qty-${id}`).value) || 1;
-            const totalAmt = parseInt(document.getElementById(`price-${id}`).innerText);
+        function addFromCard(id, name, image, prefix = '') {
+            const weight = document.getElementById(`${prefix}weight-${id}`).value;
+            const qty = parseInt(document.getElementById(`${prefix}qty-${id}`).value) || 1;
+            const totalAmt = parseInt(document.getElementById(`${prefix}price-${id}`).innerText);
             
             cart.push({ id, name, weight, qty, totalAmt, image });
             localStorage.setItem('sskc_cart', JSON.stringify(cart));
