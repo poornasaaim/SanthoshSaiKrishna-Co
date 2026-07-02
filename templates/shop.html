@@ -525,7 +525,11 @@
     <div id="toast" class="toast"></div>
 
     <script>
-        const allProducts = {{ products | tojson }};
+        const allProductsRaw = {{ products | tojson }};
+        const allProducts = allProductsRaw.filter(p => {
+            const active = String(p.Is_Active || 'TRUE').toUpperCase();
+            return active === 'TRUE' || active === '1' || active === 'YES';
+        });
         let cart = JSON.parse(localStorage.getItem('sskc_cart')) || [];
         let currentActiveProduct = null;
         let currentCategory = null;
@@ -581,13 +585,27 @@
         }
 
         // --- Navigation ---
+        function getCategoryEmoji(catName) {
+            const lower = catName.toLowerCase();
+            if(lower.includes('spice') || lower.includes('masala') || lower.includes('chilli') || lower.includes('pepper')) return '🌶️';
+            if(lower.includes('nut') || lower.includes('dry') || lower.includes('cashew') || lower.includes('almond') || lower.includes('pistachio')) return '🥜';
+            if(lower.includes('rice')) return '🍚';
+            if(lower.includes('dal') || lower.includes('lentil') || lower.includes('pulse') || lower.includes('gram')) return '🫘';
+            if(lower.includes('salt') || lower.includes('sugar')) return '🧂';
+            if(lower.includes('herb') || lower.includes('leaf') || lower.includes('tea')) return '🌿';
+            if(lower.includes('oil') || lower.includes('ghee')) return '🫒';
+            if(lower.includes('flour') || lower.includes('atta') || lower.includes('wheat') || lower.includes('millet')) return '🌾';
+            if(lower.includes('sweet') || lower.includes('honey') || lower.includes('jaggery')) return '🍯';
+            if(lower.includes('snack') || lower.includes('biscuit')) return '🍪';
+            return '🛍️'; // Default
+        }
+
         function renderCategories() {
             const categories = [...new Set(allProducts.map(p => p.Category))];
             const grid = document.getElementById('category-grid');
-            const emojis = ['🌶️', '🥜', '🍚', '🫘', '🧂', '🌿', '🥣', '🍯', '🫒', '🌾', '🧈', '🍵'];
             grid.innerHTML = categories.map((cat, i) => `
                 <div class="cat-card" onclick="showProducts('${cat}')" style="animation: fadeInUp 0.5s ease ${i * 0.1}s both;">
-                    <div style="font-size:2.5rem; margin-bottom:12px;">${emojis[i % emojis.length]}</div>
+                    <div style="font-size:2.5rem; margin-bottom:12px;">${getCategoryEmoji(cat)}</div>
                     <h3>${cat}</h3>
                     <p>Explore Items →</p>
                 </div>

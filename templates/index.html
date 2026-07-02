@@ -654,7 +654,7 @@
         </div>
         <div class="modal-content" id="register-form" style="display:none;">
             <h3>Create Account</h3>
-            <input type="text" id="r-user" placeholder="Username">
+            <input type="text" id="r-user" placeholder="Username" >
             <input type="password" id="r-pass" placeholder="Password">
             <input type="text" id="r-name" placeholder="Full Name">
             <input type="text" id="r-phone" placeholder="Phone Number">
@@ -733,14 +733,27 @@
 
         function handleAuth(action) {
             const prefix = action === 'login' ? 'l-' : 'r-';
-            const payload = { action, username: document.getElementById(prefix+'user').value, password: document.getElementById(prefix+'pass').value };
+            const username = document.getElementById(prefix+'user').value.trim();
+            const password = document.getElementById(prefix+'pass').value;
+            
+            // Validation
+            if(!username.toLowerCase().endsWith('@gmail.com')) {
+                return showToast("Username must be a valid @gmail.com email address", true);
+            }
+            
+            const strongPasswordRegex = /^(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{8,}$/;
+            if(!strongPasswordRegex.test(password)) {
+                return showToast("Password must be at least 8 characters and include a number and a special character", true);
+            }
+
+            const payload = { action, username, password };
             
             if(action === 'register') {
                 payload.name = document.getElementById('r-name').value;
                 payload.phone = document.getElementById('r-phone').value;
                 payload.address = document.getElementById('r-address').value;
                 payload.pincode = document.getElementById('r-pincode').value;
-                if(!payload.username || !payload.password || !payload.name) return showToast("Please fill required fields", true);
+                if(!payload.name) return showToast("Please fill all required fields", true);
             }
 
             fetch('/api/auth', {

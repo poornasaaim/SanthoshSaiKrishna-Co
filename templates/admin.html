@@ -776,6 +776,7 @@
                                 <th>Category</th>
                                 <th>Price (₹/kg)</th>
                                 <th>Weights</th>
+                                <th>Active</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
@@ -787,6 +788,12 @@
                                 <td><span class="badge badge-received">{{ p['Category'] }}</span></td>
                                 <td>₹{{ p['Price'] }}</td>
                                 <td style="font-size:0.85rem;">{{ p['Weight_Volume'] }}</td>
+                                <td>
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" {{ 'checked' if p.get('Is_Active', 'TRUE')|string|upper in ['TRUE', '1', 'YES'] else '' }} onchange="toggleProduct('{{ p['Product_ID'] }}', this.checked ? 'TRUE' : 'FALSE')">
+                                        <span class="toggle-slider"></span>
+                                    </label>
+                                </td>
                                 <td>
                                     <button class="action-btn btn-edit" onclick='openEditProductModal({{ p | tojson }})'>✏️ Edit</button>
                                     <button class="action-btn btn-delete" onclick="deleteProduct('{{ p['Product_ID'] }}', '{{ p['Name'] }}')">🗑️</button>
@@ -1205,6 +1212,21 @@
                     setTimeout(() => window.location.reload(), 800);
                 } else {
                     showToast('Error: ' + (data.message || 'Unknown'));
+                }
+            });
+        }
+
+        function toggleProduct(productId, status) {
+            fetch('/api/admin/toggle_product', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ product_id: productId, status: status })
+            }).then(res => res.json()).then(data => {
+                if(data.status === 'success') {
+                    showToast(status === 'TRUE' ? 'Product is now active' : 'Product is now hidden');
+                } else {
+                    showToast('Error: ' + (data.message || 'Unknown'));
+                    setTimeout(() => window.location.reload(), 1000);
                 }
             });
         }

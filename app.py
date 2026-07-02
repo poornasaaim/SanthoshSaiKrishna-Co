@@ -273,7 +273,8 @@ def add_product():
             data.get('price', 0),
             data.get('weight_volume', '1kg'),
             data.get('image_url', ''),
-            data.get('description', '')
+            data.get('description', ''),
+            'TRUE'  # Default Is_Active status
         ])
         return jsonify({"status": "success", "product_id": new_id})
     except Exception as e:
@@ -300,6 +301,34 @@ def edit_product():
                 sheet.update_cell(row_num, 7, data.get('description', row['Description']))
                 return jsonify({"status": "success"})
         
+        return jsonify({"status": "error", "message": "Product not found"})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)})
+
+@app.route('/api/admin/toggle_product', methods=['POST'])
+def toggle_product():
+    if not is_admin_authenticated():
+        return jsonify({"status": "error", "message": "Unauthorized"}), 401
+    try:
+        data = request.json
+        product_id = data.get('product_id')
+        status = data.get('status', 'TRUE')
+        
+        sheet = sheet_db.worksheet("Products")
+        records = sheet.get_all_records()
+        headers = sheet.row_values(1)
+        
+        # Ensure 'Is_Active' column exists
+        if 'Is_Active' not in headers:
+            sheet.update_cell(1, len(headers) + 1, 'Is_Active')
+            col_idx = len(headers) + 1
+        else:
+            col_idx = headers.index('Is_Active') + 1
+
+        for idx, row in enumerate(records):
+            if str(row.get('Product_ID')) == str(product_id):
+                sheet.update_cell(idx + 2, col_idx, status)
+                return jsonify({"status": "success"})
         return jsonify({"status": "error", "message": "Product not found"})
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)})
