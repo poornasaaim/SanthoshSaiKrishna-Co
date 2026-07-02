@@ -222,7 +222,8 @@ def validate_checkout():
 def place_order():
     data = request.json
     orders_sheet = sheet_db.worksheet("Orders")
-    order_id = f"ORD{len(orders_sheet.get_all_values()) + 1000}"
+    # Using just len() will start from ORD1 since row 1 is the header
+    order_id = f"ORD{len(orders_sheet.get_all_values())}"
     date = datetime.now().strftime("%Y-%m-%d")
     
     orders_sheet.append_row([
