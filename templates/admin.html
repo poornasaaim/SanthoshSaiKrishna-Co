@@ -1,0 +1,1298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard — SSK & Co</title>
+    <link rel="icon" type="image/jpeg" href="{{ url_for('static', filename='images/grocery-store.jpg') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-main: #F3F5F7;
+            --bg-card: #FFFFFF;
+            --bg-section: #FAFBFC;
+            --text-primary: #1A1D23;
+            --text-secondary: #5A6170;
+            --text-muted: #8B92A0;
+            --accent: #0D9F6E;
+            --accent-light: #E6F7F0;
+            --accent-dark: #087A54;
+            --accent-gradient: linear-gradient(135deg, #0D9F6E 0%, #10B981 50%, #34D399 100%);
+            --border: #E5E7EB;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.06);
+            --shadow-md: 0 4px 12px rgba(0,0,0,0.07);
+            --shadow-lg: 0 10px 30px rgba(0,0,0,0.08);
+            --shadow-xl: 0 20px 50px rgba(0,0,0,0.1);
+            --radius: 12px;
+            --radius-lg: 16px;
+            --radius-xl: 20px;
+            --danger: #EF4444;
+            --danger-light: #FEE2E2;
+            --warning: #F59E0B;
+            --warning-light: #FEF3C7;
+            --info: #3B82F6;
+            --info-light: #DBEAFE;
+            --whatsapp: #25D366;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        /* === LOGIN PAGE === */
+        .login-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+            background: var(--bg-main);
+        }
+        .login-box {
+            background: var(--bg-card);
+            padding: 48px 40px;
+            border-radius: var(--radius-xl);
+            width: 100%;
+            max-width: 420px;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--border);
+            text-align: center;
+        }
+        .login-brand {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.8rem;
+            color: var(--accent);
+            margin-bottom: 8px;
+        }
+        .login-subtitle { color: var(--text-muted); margin-bottom: 32px; font-size: 0.95rem; }
+        .login-box input {
+            width: 100%;
+            padding: 14px 16px;
+            background: var(--bg-section);
+            border: 1.5px solid var(--border);
+            color: var(--text-primary);
+            border-radius: 10px;
+            font-family: 'Inter', sans-serif;
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.3s;
+            margin-bottom: 16px;
+        }
+        .login-box input:focus { border-color: var(--accent); }
+        .login-box input::placeholder { color: var(--text-muted); }
+        .login-box button {
+            width: 100%;
+            padding: 14px;
+            background: var(--accent-gradient);
+            color: white;
+            font-weight: 600;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-family: 'Inter', sans-serif;
+            box-shadow: 0 4px 14px rgba(13,159,110,0.3);
+            transition: all 0.3s;
+        }
+        .login-box button:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(13,159,110,0.45); }
+        .login-error { color: var(--danger); margin-bottom: 16px; font-weight: 500; font-size: 0.9rem; }
+
+        /* === DASHBOARD LAYOUT === */
+        .dashboard { display: flex; min-height: 100vh; }
+
+        /* Sidebar */
+        .sidebar {
+            width: 260px;
+            background: var(--bg-card);
+            border-right: 1px solid var(--border);
+            padding: 24px 0;
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            overflow-y: auto;
+        }
+        .sidebar-brand {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.4rem;
+            color: var(--accent);
+            padding: 0 24px 24px;
+            border-bottom: 1px solid var(--border);
+        }
+        .sidebar-label {
+            padding: 20px 24px 8px;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+        .sidebar-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 24px;
+            cursor: pointer;
+            color: var(--text-secondary);
+            font-weight: 500;
+            font-size: 0.95rem;
+            transition: all 0.2s;
+            border-left: 3px solid transparent;
+        }
+        .sidebar-item:hover { background: var(--bg-section); color: var(--text-primary); }
+        .sidebar-item.active {
+            background: var(--accent-light);
+            color: var(--accent);
+            border-left-color: var(--accent);
+            font-weight: 600;
+        }
+        .sidebar-item .icon { font-size: 1.1rem; width: 22px; text-align: center; }
+        .sidebar-footer {
+            margin-top: auto;
+            padding: 16px 24px;
+            border-top: 1px solid var(--border);
+        }
+        .exit-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 16px;
+            background: var(--bg-section);
+            color: var(--text-secondary);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 0.9rem;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.3s;
+            width: 100%;
+            text-decoration: none;
+            justify-content: center;
+        }
+        .exit-btn:hover { border-color: var(--danger); color: var(--danger); background: var(--danger-light); }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            padding: 32px;
+            overflow-y: auto;
+        }
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 28px;
+        }
+        .page-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.8rem;
+            color: var(--text-primary);
+        }
+        .page-subtitle { color: var(--text-muted); font-size: 0.9rem; margin-top: 4px; }
+
+        /* Tab Panels */
+        .tab-panel { display: none; animation: fadeIn 0.3s ease; }
+        .tab-panel.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* === TABLES === */
+        .table-wrapper {
+            background: var(--bg-card);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border);
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+        }
+        .table-wrapper table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .table-wrapper th {
+            padding: 14px 18px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.82rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+            background: var(--bg-section);
+            border-bottom: 1px solid var(--border);
+        }
+        .table-wrapper td {
+            padding: 14px 18px;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.93rem;
+            color: var(--text-secondary);
+            vertical-align: middle;
+        }
+        .table-wrapper tr:last-child td { border-bottom: none; }
+        .table-wrapper tr:hover td { background: var(--bg-section); }
+
+        /* Status Badges */
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 50px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+        }
+        .badge-received { background: var(--info-light); color: var(--info); }
+        .badge-prepared { background: var(--warning-light); color: var(--warning); }
+        .badge-shipping { background: #EDE9FE; color: #7C3AED; }
+        .badge-delivered { background: var(--accent-light); color: var(--accent); }
+
+        /* Action Buttons */
+        .action-btn {
+            padding: 6px 14px;
+            border-radius: 8px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .btn-edit { background: var(--info-light); color: var(--info); }
+        .btn-edit:hover { background: var(--info); color: white; }
+        .btn-delete { background: var(--danger-light); color: var(--danger); }
+        .btn-delete:hover { background: var(--danger); color: white; }
+        .btn-add {
+            padding: 10px 22px;
+            background: var(--accent-gradient);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.3s;
+            box-shadow: 0 4px 14px rgba(13,159,110,0.3);
+        }
+        .btn-add:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(13,159,110,0.45); }
+        .wa-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: var(--whatsapp);
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.8rem;
+            font-family: 'Inter', sans-serif;
+            text-decoration: none;
+            transition: all 0.2s;
+            margin-top: 6px;
+        }
+        .wa-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+
+        /* Status Select */
+        .status-select {
+            padding: 8px 12px;
+            background: var(--bg-section);
+            color: var(--text-primary);
+            border: 1.5px solid var(--border);
+            border-radius: 8px;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.88rem;
+            outline: none;
+            cursor: pointer;
+            transition: border-color 0.3s;
+        }
+        .status-select:focus { border-color: var(--accent); }
+
+        /* Toggle Switch */
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 46px;
+            height: 26px;
+        }
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: var(--border);
+            border-radius: 50px;
+            transition: 0.3s;
+        }
+        .toggle-slider::before {
+            content: '';
+            position: absolute;
+            height: 20px;
+            width: 20px;
+            left: 3px;
+            bottom: 3px;
+            background: white;
+            border-radius: 50%;
+            transition: 0.3s;
+            box-shadow: var(--shadow-sm);
+        }
+        .toggle-switch input:checked + .toggle-slider { background: var(--accent); }
+        .toggle-switch input:checked + .toggle-slider::before { transform: translateX(20px); }
+
+        /* View Items Button */
+        .view-items-btn {
+            padding: 6px 14px;
+            background: var(--bg-section);
+            border: 1.5px solid var(--border);
+            color: var(--text-secondary);
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 0.82rem;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.2s;
+        }
+        .view-items-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-light); }
+
+        /* === MODALS === */
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.35);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+        .modal-content {
+            background: var(--bg-card);
+            padding: 32px;
+            border-radius: var(--radius-xl);
+            width: 100%;
+            max-width: 560px;
+            box-shadow: var(--shadow-xl);
+            animation: modalSlide 0.3s ease;
+            max-height: 85vh;
+            overflow-y: auto;
+        }
+        @keyframes modalSlide {
+            from { opacity: 0; transform: translateY(20px) scale(0.97); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+        .modal-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.4rem;
+            color: var(--text-primary);
+        }
+        .modal-close {
+            background: var(--bg-section);
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        .modal-close:hover { background: var(--danger-light); color: var(--danger); border-color: var(--danger-light); }
+
+        /* Form inside modals */
+        .form-group { margin-bottom: 16px; }
+        .form-label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 500;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+        .form-input {
+            width: 100%;
+            padding: 12px 14px;
+            background: var(--bg-section);
+            border: 1.5px solid var(--border);
+            color: var(--text-primary);
+            border-radius: 10px;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.95rem;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+        .form-input:focus { border-color: var(--accent); }
+        .form-input::placeholder { color: var(--text-muted); }
+        .form-select {
+            width: 100%;
+            padding: 12px 14px;
+            background: var(--bg-section);
+            border: 1.5px solid var(--border);
+            color: var(--text-primary);
+            border-radius: 10px;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.95rem;
+            outline: none;
+            cursor: pointer;
+        }
+        .form-submit {
+            width: 100%;
+            padding: 14px;
+            background: var(--accent-gradient);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            margin-top: 8px;
+            box-shadow: 0 4px 14px rgba(13,159,110,0.3);
+            transition: all 0.3s;
+        }
+        .form-submit:hover { transform: translateY(-1px); }
+
+        /* Items Modal Table */
+        .items-table { width: 100%; margin-top: 16px; }
+        .items-table th, .items-table td {
+            padding: 10px 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.9rem;
+        }
+        .items-table th {
+            color: var(--text-muted);
+            font-weight: 600;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+        }
+        .pack-btn {
+            width: 100%;
+            padding: 14px;
+            background: var(--accent-gradient);
+            color: white;
+            font-weight: 600;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            margin-top: 20px;
+            display: none;
+            box-shadow: 0 4px 14px rgba(13,159,110,0.3);
+        }
+
+        /* Category Cards */
+        .category-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 14px;
+            margin-top: 20px;
+        }
+        .category-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.2s;
+        }
+        .category-card:hover { box-shadow: var(--shadow-md); }
+        .category-name { font-weight: 600; color: var(--text-primary); }
+        .category-actions { display: flex; gap: 6px; }
+
+        /* Product Image in Table */
+        .prod-thumb {
+            width: 44px;
+            height: 44px;
+            border-radius: 8px;
+            object-fit: cover;
+            border: 1px solid var(--border);
+        }
+
+        /* Search Bar for Tables */
+        .table-search {
+            padding: 10px 16px;
+            background: var(--bg-section);
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.9rem;
+            outline: none;
+            transition: border-color 0.3s;
+            min-width: 260px;
+        }
+        .table-search:focus { border-color: var(--accent); }
+        .table-search::placeholder { color: var(--text-muted); }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 16px;
+            margin-bottom: 28px;
+        }
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 20px;
+            box-shadow: var(--shadow-sm);
+        }
+        .stat-value { font-size: 1.8rem; font-weight: 700; color: var(--text-primary); }
+        .stat-label { font-size: 0.85rem; color: var(--text-muted); margin-top: 4px; font-weight: 500; }
+
+        /* === TOAST === */
+        .toast {
+            visibility: hidden;
+            min-width: 280px;
+            background: var(--bg-card);
+            color: var(--text-primary);
+            text-align: center;
+            border-radius: var(--radius);
+            padding: 16px 24px;
+            position: fixed;
+            z-index: 1001;
+            bottom: 30px;
+            right: 30px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            opacity: 0;
+            transition: all 0.3s;
+            box-shadow: var(--shadow-lg);
+            border-left: 4px solid var(--accent);
+        }
+        .toast.show { visibility: visible; opacity: 1; }
+
+        /* === MOBILE RESPONSIVE === */
+        .mobile-tabs {
+            display: none;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--bg-card);
+            border-top: 1px solid var(--border);
+            z-index: 99;
+            padding: 8px 0 env(safe-area-inset-bottom, 8px);
+            box-shadow: 0 -4px 12px rgba(0,0,0,0.05);
+        }
+        .mobile-tabs-inner {
+            display: flex;
+            justify-content: space-around;
+        }
+        .mobile-tab {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 3px;
+            padding: 6px 12px;
+            cursor: pointer;
+            color: var(--text-muted);
+            font-size: 0.7rem;
+            font-weight: 500;
+            transition: color 0.2s;
+            background: none;
+            border: none;
+            font-family: 'Inter', sans-serif;
+        }
+        .mobile-tab .icon { font-size: 1.2rem; }
+        .mobile-tab.active { color: var(--accent); }
+
+        @media (max-width: 900px) {
+            .sidebar { display: none; }
+            .mobile-tabs { display: block; }
+            .main-content { padding: 20px 16px 80px; }
+            .page-header { flex-direction: column; align-items: flex-start; gap: 12px; }
+            .table-wrapper { overflow-x: auto; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .category-grid { grid-template-columns: repeat(2, 1fr); }
+            .table-search { min-width: unset; width: 100%; }
+        }
+        @media (max-width: 480px) {
+            .stats-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+            .stat-card { padding: 14px; }
+            .stat-value { font-size: 1.4rem; }
+            .category-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    {% if not authenticated %}
+    <!-- LOGIN SCREEN -->
+    <div class="login-wrapper">
+        <div class="login-box">
+            <h2 class="login-brand">SSK Admin</h2>
+            <p class="login-subtitle">Enter your password to access the dashboard</p>
+            {% if error %}<p class="login-error">{{ error }}</p>{% endif %}
+            <form method="POST">
+                <input type="password" name="password" placeholder="Enter Admin Password" required>
+                <button type="submit">Unlock Dashboard</button>
+            </form>
+        </div>
+    </div>
+
+    {% else %}
+    <!-- DASHBOARD -->
+    <div class="dashboard">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <h2 class="sidebar-brand">SSK Admin</h2>
+            <div class="sidebar-label">Management</div>
+            <div class="sidebar-item active" onclick="switchTab('orders')" id="tab-orders">
+                <span class="icon">📦</span> Orders
+            </div>
+            <div class="sidebar-item" onclick="switchTab('products')" id="tab-products">
+                <span class="icon">🏷️</span> Products
+            </div>
+            <div class="sidebar-item" onclick="switchTab('categories')" id="tab-categories">
+                <span class="icon">📂</span> Categories
+            </div>
+            <div class="sidebar-item" onclick="switchTab('coupons')" id="tab-coupons">
+                <span class="icon">🎟️</span> Coupons
+            </div>
+            <div class="sidebar-footer">
+                <a href="/" class="exit-btn">← Exit to Website</a>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <div class="main-content">
+
+            <!-- ====== ORDERS TAB ====== -->
+            <div class="tab-panel active" id="panel-orders">
+                <div class="page-header">
+                    <div>
+                        <h1 class="page-title">Orders</h1>
+                        <p class="page-subtitle">Manage and track all customer orders</p>
+                    </div>
+                    <input type="text" class="table-search" placeholder="Search orders..." onkeyup="searchTable('orders-table', this.value)">
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value" id="stat-total-orders">{{ orders|length }}</div>
+                        <div class="stat-label">Total Orders</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="stat-received">{{ orders|selectattr('Order_Status', 'equalto', 'Received')|list|length }}</div>
+                        <div class="stat-label">Received</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="stat-shipping">{{ orders|selectattr('Order_Status', 'equalto', 'Shipping')|list|length }}</div>
+                        <div class="stat-label">Shipping</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="stat-delivered">{{ orders|selectattr('Order_Status', 'equalto', 'Delivered')|list|length }}</div>
+                        <div class="stat-label">Delivered</div>
+                    </div>
+                </div>
+
+                <div class="table-wrapper">
+                    <table id="orders-table">
+                        <thead>
+                            <tr>
+                                <th>Order ID</th>
+                                <th>Customer</th>
+                                <th>Items</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for order in orders %}
+                            <tr>
+                                <td>
+                                    <strong style="color:var(--text-primary);">{{ order['Order_ID'] }}</strong>
+                                    <br><span style="font-size:0.8rem; color:var(--text-muted);">{{ order['Date'] }}</span>
+                                </td>
+                                <td>
+                                    <strong style="color:var(--text-primary);">{{ order['Username'] }}</strong>
+                                    <br><span style="font-size:0.82rem; color:var(--accent);">📞 {{ order['Customer_Phone'] }}</span>
+                                    <br><span style="font-size:0.8rem; color:var(--text-muted);">{{ order['Delivery_Address'] }}, {{ order['Pincode'] }}</span>
+                                </td>
+                                <td>
+                                    <button class="view-items-btn" onclick="viewItems('{{ order['Order_ID'] }}', '{{ order['Items_Ordered'] }}')">View Items</button>
+                                </td>
+                                <td><strong style="font-size:1.05rem; color:var(--text-primary);">₹{{ order['Total_Amount'] }}</strong></td>
+                                <td>
+                                    <select class="status-select" onchange="updateStatus('{{ order['Order_ID'] }}', this.value)">
+                                        <option value="Received" {% if order['Order_Status'] == 'Received' %}selected{% endif %}>Received</option>
+                                        <option value="Prepared" {% if order['Order_Status'] == 'Prepared' %}selected{% endif %}>Prepared</option>
+                                        <option value="Shipping" {% if order['Order_Status'] == 'Shipping' %}selected{% endif %}>Shipping</option>
+                                        <option value="Delivered" {% if order['Order_Status'] == 'Delivered' %}selected{% endif %}>Delivered</option>
+                                    </select>
+                                </td>
+                                <td>
+                                    <button class="wa-btn" onclick="notifyCustomer('{{ order['Customer_Phone'] }}', '{{ order['Order_ID'] }}', '{{ order['Order_Status'] }}')">📲 Notify</button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- ====== PRODUCTS TAB ====== -->
+            <div class="tab-panel" id="panel-products">
+                <div class="page-header">
+                    <div>
+                        <h1 class="page-title">Products</h1>
+                        <p class="page-subtitle">Manage your product catalog</p>
+                    </div>
+                    <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+                        <input type="text" class="table-search" placeholder="Search products..." onkeyup="searchTable('products-table', this.value)">
+                        <button class="btn-add" onclick="openAddProductModal()">+ Add Product</button>
+                    </div>
+                </div>
+
+                <div class="table-wrapper">
+                    <table id="products-table">
+                        <thead>
+                            <tr>
+                                <th>Image</th>
+                                <th>Name</th>
+                                <th>Category</th>
+                                <th>Price (₹/kg)</th>
+                                <th>Weights</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for p in products %}
+                            <tr>
+                                <td><img src="{{ p['Image_URL'] }}" class="prod-thumb" alt="{{ p['Name'] }}"></td>
+                                <td><strong style="color:var(--text-primary);">{{ p['Name'] }}</strong></td>
+                                <td><span class="badge badge-received">{{ p['Category'] }}</span></td>
+                                <td>₹{{ p['Price'] }}</td>
+                                <td style="font-size:0.85rem;">{{ p['Weight_Volume'] }}</td>
+                                <td>
+                                    <button class="action-btn btn-edit" onclick='openEditProductModal({{ p | tojson }})'>✏️ Edit</button>
+                                    <button class="action-btn btn-delete" onclick="deleteProduct('{{ p['Product_ID'] }}', '{{ p['Name'] }}')">🗑️</button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- ====== CATEGORIES TAB ====== -->
+            <div class="tab-panel" id="panel-categories">
+                <div class="page-header">
+                    <div>
+                        <h1 class="page-title">Categories</h1>
+                        <p class="page-subtitle">Categories are extracted from the Products sheet. Add products with new category names to create categories.</p>
+                    </div>
+                </div>
+
+                <div class="category-grid">
+                    {% for cat in categories %}
+                    <div class="category-card">
+                        <span class="category-name">{{ cat }}</span>
+                        <span style="color:var(--text-muted); font-size:0.85rem;">
+                            {{ products|selectattr('Category', 'equalto', cat)|list|length }} items
+                        </span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- ====== COUPONS TAB ====== -->
+            <div class="tab-panel" id="panel-coupons">
+                <div class="page-header">
+                    <div>
+                        <h1 class="page-title">Coupons & Shipping</h1>
+                        <p class="page-subtitle">Manage discount codes and pincode-based shipping fees</p>
+                    </div>
+                    <button class="btn-add" onclick="openAddCouponModal()">+ Add Coupon/Shipping</button>
+                </div>
+
+                <div class="table-wrapper">
+                    <table id="coupons-table">
+                        <thead>
+                            <tr>
+                                <th>Pincode</th>
+                                <th>Shipping (₹)</th>
+                                <th>Discount Code</th>
+                                <th>Discount %</th>
+                                <th>Min Order</th>
+                                <th>Active</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for c in coupons %}
+                            <tr>
+                                <td style="color:var(--text-primary); font-weight:500;">{{ c.get('Pincode', '') }}</td>
+                                <td>₹{{ c.get('Shipping_Cost', 0) }}</td>
+                                <td>
+                                    {% if c.get('Discount_Code', '') %}
+                                    <span class="badge badge-prepared">{{ c['Discount_Code'] }}</span>
+                                    {% else %}
+                                    <span style="color:var(--text-muted);">—</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ c.get('Discount_Percentage', 0) }}%</td>
+                                <td>₹{{ c.get('Min_Order_Value', 0) }}</td>
+                                <td>
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" {{ 'checked' if c.get('Is_Active', '')|string|upper in ['TRUE', '1', 'YES'] else '' }} onchange="toggleCoupon('{{ c.get('Discount_Code', '') }}', this.checked ? 'TRUE' : 'FALSE')">
+                                        <span class="toggle-slider"></span>
+                                    </label>
+                                </td>
+                                <td>
+                                    <button class="action-btn btn-edit" onclick='openEditCouponModal({{ c | tojson }})'>✏️</button>
+                                    <button class="action-btn btn-delete" onclick="deleteCoupon('{{ c.get('Discount_Code', '') }}')">🗑️</button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile Bottom Tabs -->
+    <div class="mobile-tabs">
+        <div class="mobile-tabs-inner">
+            <button class="mobile-tab active" onclick="switchTab('orders')" id="mtab-orders">
+                <span class="icon">📦</span> Orders
+            </button>
+            <button class="mobile-tab" onclick="switchTab('products')" id="mtab-products">
+                <span class="icon">🏷️</span> Products
+            </button>
+            <button class="mobile-tab" onclick="switchTab('categories')" id="mtab-categories">
+                <span class="icon">📂</span> Categories
+            </button>
+            <button class="mobile-tab" onclick="switchTab('coupons')" id="mtab-coupons">
+                <span class="icon">🎟️</span> Coupons
+            </button>
+        </div>
+    </div>
+
+    <!-- ====== ITEMS MODAL ====== -->
+    <div id="items-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Order <span id="modal-order-id"></span></h3>
+                <button class="modal-close" onclick="closeModal('items-modal')">✕</button>
+            </div>
+            <p style="color:var(--text-muted); font-size:0.9rem;">Check items as you pack them.</p>
+            <table class="items-table">
+                <thead><tr><th>Pack</th><th>Qty</th><th>Product</th><th>Weight</th></tr></thead>
+                <tbody id="modal-items-body"></tbody>
+            </table>
+            <button id="mark-packed-btn" class="pack-btn" onclick="markAsPacked()">✓ All Packed — Mark as Prepared</button>
+        </div>
+    </div>
+
+    <!-- ====== ADD PRODUCT MODAL ====== -->
+    <div id="add-product-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="product-modal-title">Add New Product</h3>
+                <button class="modal-close" onclick="closeModal('add-product-modal')">✕</button>
+            </div>
+            <input type="hidden" id="edit-product-id" value="">
+            <div class="form-group">
+                <label class="form-label">Product Name</label>
+                <input type="text" class="form-input" id="prod-name" placeholder="e.g. Premium Cashew">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Category</label>
+                <select class="form-select" id="prod-category">
+                    {% for cat in categories %}
+                    <option value="{{ cat }}">{{ cat }}</option>
+                    {% endfor %}
+                    <option value="__new__">+ New Category</option>
+                </select>
+                <input type="text" class="form-input" id="prod-new-category" placeholder="New category name" style="display:none; margin-top:8px;">
+            </div>
+            <div style="display:flex; gap:12px;">
+                <div class="form-group" style="flex:1;">
+                    <label class="form-label">Price (₹ per kg)</label>
+                    <input type="number" class="form-input" id="prod-price" placeholder="e.g. 500">
+                </div>
+                <div class="form-group" style="flex:1;">
+                    <label class="form-label">Weight Options</label>
+                    <input type="text" class="form-input" id="prod-weight" placeholder="e.g. 250g, 500g, 1kg">
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Image URL</label>
+                <input type="text" class="form-input" id="prod-image" placeholder="https://...">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Description</label>
+                <textarea class="form-input" id="prod-desc" rows="3" placeholder="Product description..." style="resize:vertical;"></textarea>
+            </div>
+            <button class="form-submit" onclick="saveProduct()">Save Product</button>
+        </div>
+    </div>
+
+    <!-- ====== ADD COUPON MODAL ====== -->
+    <div id="add-coupon-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="coupon-modal-title">Add Coupon / Shipping</h3>
+                <button class="modal-close" onclick="closeModal('add-coupon-modal')">✕</button>
+            </div>
+            <input type="hidden" id="edit-coupon-original-code" value="">
+            <div style="display:flex; gap:12px;">
+                <div class="form-group" style="flex:1;">
+                    <label class="form-label">Pincode</label>
+                    <input type="text" class="form-input" id="coupon-pincode" placeholder="e.g. 600001">
+                </div>
+                <div class="form-group" style="flex:1;">
+                    <label class="form-label">Shipping Cost (₹)</label>
+                    <input type="number" class="form-input" id="coupon-shipping" placeholder="e.g. 50">
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Discount Code</label>
+                <input type="text" class="form-input" id="coupon-code" placeholder="e.g. WELCOME10">
+            </div>
+            <div style="display:flex; gap:12px;">
+                <div class="form-group" style="flex:1;">
+                    <label class="form-label">Discount %</label>
+                    <input type="number" class="form-input" id="coupon-percent" placeholder="e.g. 10">
+                </div>
+                <div class="form-group" style="flex:1;">
+                    <label class="form-label">Min Order Value (₹)</label>
+                    <input type="number" class="form-input" id="coupon-min" placeholder="e.g. 500">
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label" style="display:flex; align-items:center; gap:10px;">
+                    Active
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="coupon-active" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </label>
+            </div>
+            <button class="form-submit" onclick="saveCoupon()">Save</button>
+        </div>
+    </div>
+
+    {% endif %}
+
+    <div id="toast" class="toast"></div>
+
+    <script>
+        // ====== TAB SWITCHING ======
+        function switchTab(tabName) {
+            // Hide all panels
+            document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.sidebar-item').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.mobile-tab').forEach(m => m.classList.remove('active'));
+            
+            // Show selected
+            const panel = document.getElementById('panel-' + tabName);
+            if(panel) panel.classList.add('active');
+            
+            const sidebarItem = document.getElementById('tab-' + tabName);
+            if(sidebarItem) sidebarItem.classList.add('active');
+            
+            const mobileTab = document.getElementById('mtab-' + tabName);
+            if(mobileTab) mobileTab.classList.add('active');
+        }
+
+        // ====== TOAST ======
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.innerText = msg;
+            t.className = 'toast show';
+            setTimeout(() => { t.className = t.className.replace('show', ''); }, 3000);
+        }
+
+        // ====== TABLE SEARCH ======
+        function searchTable(tableId, query) {
+            const table = document.getElementById(tableId);
+            const rows = table.querySelectorAll('tbody tr');
+            query = query.toLowerCase();
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(query) ? '' : 'none';
+            });
+        }
+
+        // ====== MODAL HELPERS ======
+        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
+        // ====== ORDERS ======
+        let currentModalOrderId = "";
+
+        function updateStatus(orderId, newStatus) {
+            fetch('/api/update_order', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ order_id: orderId, status: newStatus })
+            }).then(res => res.json()).then(data => {
+                if(data.status === 'success') {
+                    showToast(`Order ${orderId} → ${newStatus}`);
+                    setTimeout(() => window.location.reload(), 1000);
+                } else showToast("Update failed");
+            });
+        }
+
+        function viewItems(orderId, itemsStr) {
+            currentModalOrderId = orderId;
+            document.getElementById('modal-order-id').innerText = orderId;
+            const tbody = document.getElementById('modal-items-body');
+            tbody.innerHTML = '';
+            
+            const items = itemsStr.split('|');
+            items.forEach((item) => {
+                item = item.trim();
+                if(!item) return;
+                let qty = item.split('x')[0].trim();
+                let rest = item.substring(item.indexOf('x') + 1).trim();
+                let name = rest.split('(')[0].trim();
+                let weight = rest.match(/\(([^)]+)\)/) ? rest.match(/\(([^)]+)\)/)[1] : '-';
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td><input type="checkbox" class="pack-checkbox" onchange="checkAllPacked()" style="width:18px;height:18px;accent-color:var(--accent);cursor:pointer;"></td>
+                        <td style="font-weight:600;">${qty}</td>
+                        <td>${name}</td>
+                        <td style="color:var(--text-muted);">${weight}</td>
+                    </tr>
+                `;
+            });
+            
+            document.getElementById('mark-packed-btn').style.display = 'none';
+            document.getElementById('items-modal').style.display = 'flex';
+        }
+
+        function checkAllPacked() {
+            const checkboxes = document.querySelectorAll('.pack-checkbox');
+            const allChecked = Array.from(checkboxes).every(c => c.checked);
+            document.getElementById('mark-packed-btn').style.display = allChecked ? 'block' : 'none';
+        }
+
+        function markAsPacked() {
+            updateStatus(currentModalOrderId, 'Prepared');
+            closeModal('items-modal');
+        }
+
+        function notifyCustomer(phone, orderId, status) {
+            let msg = `👋 Hello from *Santhosh Sai Krishna & Co!* 🌟\n\n`;
+            
+            if(status === 'Received' || status === 'Pending') {
+                msg += `We've successfully received your order 🛍️ *${orderId}*.\nOur team is currently processing your items ⏳.\n\nThank you for choosing us! 🙏✨`;
+            }
+            else if(status === 'Prepared') {
+                msg += `Great news! 🥳 Your order 📦 *${orderId}* has been securely packed and is ready for dispatch.\n\nGet ready for premium freshness! 🍃✨`;
+            }
+            else if(status === 'Shipping') {
+                msg += `Woohoo! 🚀 Your order 🛵 *${orderId}* is out for delivery and heading your way right now.\n\nPlease keep your phone handy! 📱🚚`;
+            }
+            else if(status === 'Delivered') {
+                msg += `Success! 🎉 Your order ✅ *${orderId}* has been delivered successfully.\n\nWe hope you love our products! 💖 See you next time! 🛒✨`;
+            }
+            
+            window.open(`https://wa.me/91${phone}?text=${encodeURIComponent(msg)}`, '_blank');
+        }
+
+        // ====== PRODUCTS ======
+        // Category dropdown new option handler
+        const catSelect = document.getElementById('prod-category');
+        if(catSelect) {
+            catSelect.addEventListener('change', function() {
+                document.getElementById('prod-new-category').style.display = this.value === '__new__' ? 'block' : 'none';
+            });
+        }
+
+        function openAddProductModal() {
+            document.getElementById('product-modal-title').innerText = 'Add New Product';
+            document.getElementById('edit-product-id').value = '';
+            document.getElementById('prod-name').value = '';
+            document.getElementById('prod-category').value = catSelect ? catSelect.options[0]?.value || '' : '';
+            document.getElementById('prod-new-category').value = '';
+            document.getElementById('prod-new-category').style.display = 'none';
+            document.getElementById('prod-price').value = '';
+            document.getElementById('prod-weight').value = '';
+            document.getElementById('prod-image').value = '';
+            document.getElementById('prod-desc').value = '';
+            document.getElementById('add-product-modal').style.display = 'flex';
+        }
+
+        function openEditProductModal(product) {
+            document.getElementById('product-modal-title').innerText = 'Edit Product';
+            document.getElementById('edit-product-id').value = product.Product_ID;
+            document.getElementById('prod-name').value = product.Name;
+            document.getElementById('prod-category').value = product.Category;
+            document.getElementById('prod-price').value = product.Price;
+            document.getElementById('prod-weight').value = product.Weight_Volume;
+            document.getElementById('prod-image').value = product.Image_URL;
+            document.getElementById('prod-desc').value = product.Description;
+            document.getElementById('prod-new-category').style.display = 'none';
+            document.getElementById('add-product-modal').style.display = 'flex';
+        }
+
+        function saveProduct() {
+            const productId = document.getElementById('edit-product-id').value;
+            let category = document.getElementById('prod-category').value;
+            if(category === '__new__') {
+                category = document.getElementById('prod-new-category').value.trim();
+                if(!category) { showToast('Enter a category name'); return; }
+            }
+
+            const payload = {
+                name: document.getElementById('prod-name').value,
+                category: category,
+                price: document.getElementById('prod-price').value,
+                weight_volume: document.getElementById('prod-weight').value,
+                image_url: document.getElementById('prod-image').value,
+                description: document.getElementById('prod-desc').value
+            };
+
+            if(!payload.name || !payload.price) { showToast('Name and Price are required'); return; }
+
+            let url = '/api/admin/add_product';
+            if(productId) {
+                url = '/api/admin/edit_product';
+                payload.product_id = productId;
+            }
+
+            fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            }).then(res => res.json()).then(data => {
+                if(data.status === 'success') {
+                    showToast(productId ? 'Product updated!' : 'Product added!');
+                    setTimeout(() => window.location.reload(), 800);
+                } else {
+                    showToast('Error: ' + (data.message || 'Unknown'));
+                }
+            });
+        }
+
+        function deleteProduct(productId, name) {
+            if(!confirm(`Delete "${name}"? This cannot be undone.`)) return;
+            fetch('/api/admin/delete_product', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ product_id: productId })
+            }).then(res => res.json()).then(data => {
+                if(data.status === 'success') {
+                    showToast('Product deleted');
+                    setTimeout(() => window.location.reload(), 800);
+                } else {
+                    showToast('Error: ' + (data.message || 'Unknown'));
+                }
+            });
+        }
+
+        // ====== COUPONS ======
+        function openAddCouponModal() {
+            document.getElementById('coupon-modal-title').innerText = 'Add Coupon / Shipping';
+            document.getElementById('edit-coupon-original-code').value = '';
+            document.getElementById('coupon-pincode').value = '';
+            document.getElementById('coupon-shipping').value = '';
+            document.getElementById('coupon-code').value = '';
+            document.getElementById('coupon-percent').value = '';
+            document.getElementById('coupon-min').value = '';
+            document.getElementById('coupon-active').checked = true;
+            document.getElementById('add-coupon-modal').style.display = 'flex';
+        }
+
+        function openEditCouponModal(coupon) {
+            document.getElementById('coupon-modal-title').innerText = 'Edit Coupon / Shipping';
+            document.getElementById('edit-coupon-original-code').value = coupon.Discount_Code || '';
+            document.getElementById('coupon-pincode').value = coupon.Pincode || '';
+            document.getElementById('coupon-shipping').value = coupon.Shipping_Cost || '';
+            document.getElementById('coupon-code').value = coupon.Discount_Code || '';
+            document.getElementById('coupon-percent').value = coupon.Discount_Percentage || '';
+            document.getElementById('coupon-min').value = coupon.Min_Order_Value || '';
+            const isActive = String(coupon.Is_Active || '').toUpperCase();
+            document.getElementById('coupon-active').checked = ['TRUE', '1', 'YES'].includes(isActive);
+            document.getElementById('add-coupon-modal').style.display = 'flex';
+        }
+
+        function saveCoupon() {
+            const originalCode = document.getElementById('edit-coupon-original-code').value;
+            const payload = {
+                pincode: document.getElementById('coupon-pincode').value,
+                shipping_cost: document.getElementById('coupon-shipping').value || 0,
+                discount_code: document.getElementById('coupon-code').value,
+                discount_percentage: document.getElementById('coupon-percent').value || 0,
+                min_order_value: document.getElementById('coupon-min').value || 0,
+                is_active: document.getElementById('coupon-active').checked ? 'TRUE' : 'FALSE'
+            };
+
+            let url = '/api/admin/add_coupon';
+            if(originalCode) {
+                url = '/api/admin/edit_coupon';
+                payload.original_code = originalCode;
+            }
+
+            fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            }).then(res => res.json()).then(data => {
+                if(data.status === 'success') {
+                    showToast(originalCode ? 'Coupon updated!' : 'Coupon added!');
+                    setTimeout(() => window.location.reload(), 800);
+                } else {
+                    showToast('Error: ' + (data.message || 'Unknown'));
+                }
+            });
+        }
+
+        function toggleCoupon(code, status) {
+            fetch('/api/toggle_coupon', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ code: code, status: status })
+            }).then(res => res.json()).then(data => {
+                if(data.status === 'success') showToast(`Coupon ${status === 'TRUE' ? 'enabled' : 'disabled'}`);
+                else showToast('Toggle failed');
+            });
+        }
+
+        function deleteCoupon(code) {
+            if(!code) { showToast('Cannot delete — no discount code'); return; }
+            if(!confirm(`Delete coupon "${code}"?`)) return;
+            fetch('/api/admin/delete_coupon', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ discount_code: code })
+            }).then(res => res.json()).then(data => {
+                if(data.status === 'success') {
+                    showToast('Coupon deleted');
+                    setTimeout(() => window.location.reload(), 800);
+                } else {
+                    showToast('Error: ' + (data.message || 'Unknown'));
+                }
+            });
+        }
+    </script>
+</body>
+</html>
