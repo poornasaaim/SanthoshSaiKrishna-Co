@@ -932,48 +932,48 @@
     </div>
 
     <!-- Hidden PDF Template -->
-    <div id="admin-pdf-template" style="display:none; padding:40px; font-family:'Inter', sans-serif; color:#1A1D23; background:#fff;">
-        <div style="text-align:center; margin-bottom:30px; border-bottom:2px solid #0D9F6E; padding-bottom:20px;">
-            <h1 style="font-family:'Playfair Display', serif; color:#0D9F6E; font-size:2.5rem; margin:0;">SSK & CO</h1>
-            <p style="margin:5px 0 0; font-size:1.1rem; color:#5A6170;">Santhosh Sai Krishna & Co, George Town, Chennai</p>
-            <h2 style="margin:20px 0 0; font-size:1.8rem; letter-spacing:2px; text-transform:uppercase;">ESTIMATE</h2>
+    <div id="admin-pdf-template" style="display:none; padding:15px; font-family:'Inter', sans-serif; color:#1A1D23; background:#fff; font-size: 0.85rem;">
+        <div style="text-align:center; margin-bottom:15px; border-bottom:2px solid #0D9F6E; padding-bottom:10px;">
+            <h1 style="font-family:'Playfair Display', serif; color:#0D9F6E; font-size:1.8rem; margin:0;">SSK & CO</h1>
+            <p style="margin:2px 0 0; font-size:0.9rem; color:#5A6170;">Santhosh Sai Krishna & Co, George Town, Chennai</p>
+            <h2 style="margin:10px 0 0; font-size:1.3rem; letter-spacing:1px; text-transform:uppercase;">ESTIMATE</h2>
         </div>
         
-        <div style="display:flex; justify-content:space-between; margin-bottom:30px;">
+        <div style="display:flex; justify-content:space-between; margin-bottom:15px;">
             <div>
-                <h4 style="margin:0 0 10px; color:#0D9F6E;">Billed To:</h4>
+                <h4 style="margin:0 0 5px; color:#0D9F6E;">Billed To:</h4>
                 <p style="margin:0; font-weight:600;" id="admin-pdf-name"></p>
-                <p style="margin:5px 0; color:#5A6170; max-width:250px;" id="admin-pdf-address"></p>
+                <p style="margin:2px 0; color:#5A6170; max-width:250px;" id="admin-pdf-address"></p>
                 <p style="margin:0; color:#5A6170;">Ph: <span id="admin-pdf-phone"></span></p>
             </div>
             <div style="text-align:right;">
-                <p style="margin:0 0 5px;"><strong>Date:</strong> <span id="admin-pdf-date"></span></p>
+                <p style="margin:0 0 2px;"><strong>Date:</strong> <span id="admin-pdf-date"></span></p>
                 <p style="margin:0;"><strong>Order ID:</strong> <span id="admin-pdf-order-id"></span></p>
             </div>
         </div>
 
-        <table style="width:100%; border-collapse:collapse; margin-bottom:30px;">
+        <table style="width:100%; border-collapse:collapse; margin-bottom:15px;">
             <thead>
                 <tr style="background:#F3F5F7; border-bottom:2px solid #E5E7EB;">
-                    <th style="padding:12px; text-align:left;">Product</th>
-                    <th style="padding:12px; text-align:right;">Qty</th>
+                    <th style="padding:6px; text-align:left;">Product</th>
+                    <th style="padding:6px; text-align:right;">Qty</th>
                 </tr>
             </thead>
             <tbody id="admin-pdf-items"></tbody>
         </table>
 
         <div style="display:flex; justify-content:flex-end;">
-            <div style="width:300px;">
-                <div style="display:flex; justify-content:space-between; padding:12px 0; font-size:1.2rem; font-weight:700;">
+            <div style="width:250px;">
+                <div style="display:flex; justify-content:space-between; padding:6px 0; font-size:1.05rem; font-weight:700;">
                     <span>Total Amount Paid:</span>
                     <span style="color:#0D9F6E;">₹<span id="admin-pdf-total">0</span></span>
                 </div>
             </div>
         </div>
         
-        <div style="text-align:center; margin-top:50px; color:#8B92A0; font-size:0.9rem;">
-            <p>Thank you for shopping with SSK & Co!</p>
-            <p>This is a system generated estimate.</p>
+        <div style="text-align:center; margin-top:20px; color:#8B92A0; font-size:0.75rem;">
+            <p style="margin:0;">Thank you for shopping with SSK & Co!</p>
+            <p style="margin:0;">This is a system generated estimate.</p>
         </div>
     </div>
 
@@ -1171,11 +1171,11 @@
                 
                 pdfBody.innerHTML += `
                     <tr style="border-bottom:1px solid #E5E7EB;">
-                        <td style="padding:12px; text-align:left;">
+                        <td style="padding:6px; text-align:left;">
                             <p style="margin:0; font-weight:600;">${name}</p>
                             <p style="margin:0; font-size:0.85rem; color:#5A6170;">${weight}</p>
                         </td>
-                        <td style="padding:12px; text-align:right;">${qty}</td>
+                        <td style="padding:6px; text-align:right;">${qty}</td>
                     </tr>
                 `;
             });

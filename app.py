@@ -160,7 +160,8 @@ def auth():
     
     if data['action'] == 'login':
         for c in customers:
-            if (str(c['Username']) == data['username'] or str(c.get('Phone', '')) == data['username']) and str(c['Password']) == data['password']:
+            phone_val = str(c.get('Phone_Number', c.get('Phone', '')))
+            if (str(c['Username']) == data['username'] or phone_val == data['username']) and str(c['Password']) == data['password']:
                 return jsonify({"status": "success", "user": c})
         return jsonify({"status": "error", "message": "Invalid email/phone or password"})
         
