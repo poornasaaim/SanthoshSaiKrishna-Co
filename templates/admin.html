@@ -1146,7 +1146,6 @@
 
         function viewItems(btn) {
             const orderId = btn.getAttribute('data-order-id');
-            const itemsStr = btn.getAttribute('data-items');
             currentModalOrderId = orderId;
             document.getElementById('modal-order-id').innerText = orderId;
             
@@ -1163,7 +1162,7 @@
             tbody.innerHTML = '';
             pdfBody.innerHTML = '';
             
-            let itemsStr = btn.getAttribute('data-items');
+            let itemsStr = btn.getAttribute('data-items') || "";
             
             // Extract billing if present (for new orders)
             let sub = "0", ship = "0", disc = "0";
