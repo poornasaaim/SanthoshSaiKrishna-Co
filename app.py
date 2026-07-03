@@ -160,13 +160,13 @@ def auth():
     
     if data['action'] == 'login':
         for c in customers:
-            if str(c['Username']) == data['username'] and str(c['Password']) == data['password']:
+            if (str(c['Username']) == data['username'] or str(c.get('Phone', '')) == data['username']) and str(c['Password']) == data['password']:
                 return jsonify({"status": "success", "user": c})
-        return jsonify({"status": "error", "message": "Invalid username or password"})
+        return jsonify({"status": "error", "message": "Invalid email/phone or password"})
         
     elif data['action'] == 'register':
         if any(c['Username'] == data['username'] for c in customers):
-            return jsonify({"status": "error", "message": "Username already exists"})
+            return jsonify({"status": "error", "message": "Email already exists"})
         customers_sheet.append_row([data['username'], data['password'], data['name'], data['phone'], data['address'], data['pincode']])
         return jsonify({"status": "success"})
 
@@ -175,7 +175,6 @@ def validate_checkout():
     data = request.json
     pincode = str(data.get('pincode', '')).strip()
     discount_code = str(data.get('discount', '')).strip().upper()
-    phone = str(data.get('phone', '')).strip()
     subtotal = float(data.get('subtotal', 0))
     
     try:
@@ -183,20 +182,18 @@ def validate_checkout():
     except Exception:
         shipping_sheet = []
         
-    shipping_cost = 100 # Default shipping fee if pincode not found
+    # Dynamic Shipping Logic based on Subtotal
+    if subtotal >= 500:
+        shipping_cost = 0
+    else:
+        shipping_cost = 100 if pincode == "600001" else 150
+        
     discount_percent = 0
     message = ""
     coupon_found = False
     
     for row in shipping_sheet:
-        # 1. Check shipping cost independently
-        if str(row.get('Pincode', '')).strip() == pincode:
-            try:
-                shipping_cost = int(row.get('Shipping_Cost', 0))
-            except ValueError:
-                shipping_cost = 0
-                
-        # 2. Check coupon independently
+        # Check coupon independently
         row_discount = str(row.get('Discount_Code', '')).strip().upper()
         if discount_code and row_discount == discount_code:
             coupon_found = True
@@ -272,6 +269,7 @@ def add_product():
             data.get('name', ''),
             data.get('category', ''),
             data.get('price', 0),
+            '1000',
             data.get('weight_volume', '1kg'),
             data.get('image_url', ''),
             data.get('description', ''),
@@ -297,9 +295,9 @@ def edit_product():
                 sheet.update_cell(row_num, 2, data.get('name', row['Name']))
                 sheet.update_cell(row_num, 3, data.get('category', row['Category']))
                 sheet.update_cell(row_num, 4, data.get('price', row['Price']))
-                sheet.update_cell(row_num, 5, data.get('weight_volume', row['Weight_Volume']))
-                sheet.update_cell(row_num, 6, data.get('image_url', row['Image_URL']))
-                sheet.update_cell(row_num, 7, data.get('description', row['Description']))
+                sheet.update_cell(row_num, 6, data.get('weight_volume', row['Weight_Volume']))
+                sheet.update_cell(row_num, 7, data.get('image_url', row['Image_URL']))
+                sheet.update_cell(row_num, 8, data.get('description', row['Description']))
                 return jsonify({"status": "success"})
         
         return jsonify({"status": "error", "message": "Product not found"})

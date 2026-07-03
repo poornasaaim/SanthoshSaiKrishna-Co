@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard — SSK & Co</title>
     <link rel="icon" type="image/jpeg" href="{{ url_for('static', filename='images/grocery-store.jpg') }}">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
@@ -733,7 +734,15 @@
                                     <br><span style="font-size:0.8rem; color:var(--text-muted);">{{ order['Delivery_Address'] }}, {{ order['Pincode'] }}</span>
                                 </td>
                                 <td>
-                                    <button class="view-items-btn" onclick="viewItems('{{ order['Order_ID'] }}', '{{ order['Items_Ordered'] }}')">View Items</button>
+                                    <button class="view-items-btn" 
+                                        data-order-id="{{ order['Order_ID'] }}" 
+                                        data-items="{{ order['Items_Ordered'] }}"
+                                        data-name="{{ order['Username'] }}"
+                                        data-address="{{ order['Delivery_Address'] }}, {{ order['Pincode'] }}"
+                                        data-phone="{{ order['Customer_Phone'] }}"
+                                        data-date="{{ order['Date'] }}"
+                                        data-total="{{ order['Total_Amount'] }}"
+                                        onclick="viewItems(this)">View Items</button>
                                 </td>
                                 <td><strong style="font-size:1.05rem; color:var(--text-primary);">₹{{ order['Total_Amount'] }}</strong></td>
                                 <td>
@@ -897,6 +906,9 @@
             <button class="mobile-tab" onclick="switchTab('coupons')" id="mtab-coupons">
                 <span class="icon">🎟️</span> Coupons
             </button>
+            <button class="mobile-tab" onclick="adminLogout()" style="color:var(--danger);">
+                <span class="icon">🚪</span> Logout
+            </button>
         </div>
     </div>
 
@@ -905,7 +917,10 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h3 class="modal-title">Order <span id="modal-order-id"></span></h3>
-                <button class="modal-close" onclick="closeModal('items-modal')">✕</button>
+                <div style="display:flex; gap:10px; align-items:center;">
+                    <button onclick="downloadAdminPDF()" style="background:var(--accent-light); color:var(--accent-dark); border:1px solid var(--accent); padding:6px 12px; border-radius:6px; cursor:pointer; font-weight:600; font-size:0.85rem;">📄 Download PDF</button>
+                    <button class="modal-close" onclick="closeModal('items-modal')">✕</button>
+                </div>
             </div>
             <p style="color:var(--text-muted); font-size:0.9rem;">Check items as you pack them.</p>
             <table class="items-table">
@@ -913,6 +928,52 @@
                 <tbody id="modal-items-body"></tbody>
             </table>
             <button id="mark-packed-btn" class="pack-btn" onclick="markAsPacked()">✓ All Packed — Mark as Prepared</button>
+        </div>
+    </div>
+
+    <!-- Hidden PDF Template -->
+    <div id="admin-pdf-template" style="display:none; padding:40px; font-family:'Inter', sans-serif; color:#1A1D23; background:#fff;">
+        <div style="text-align:center; margin-bottom:30px; border-bottom:2px solid #0D9F6E; padding-bottom:20px;">
+            <h1 style="font-family:'Playfair Display', serif; color:#0D9F6E; font-size:2.5rem; margin:0;">SSK & CO</h1>
+            <p style="margin:5px 0 0; font-size:1.1rem; color:#5A6170;">Santhosh Sai Krishna & Co, George Town, Chennai</p>
+            <h2 style="margin:20px 0 0; font-size:1.8rem; letter-spacing:2px; text-transform:uppercase;">ESTIMATE</h2>
+        </div>
+        
+        <div style="display:flex; justify-content:space-between; margin-bottom:30px;">
+            <div>
+                <h4 style="margin:0 0 10px; color:#0D9F6E;">Billed To:</h4>
+                <p style="margin:0; font-weight:600;" id="admin-pdf-name"></p>
+                <p style="margin:5px 0; color:#5A6170; max-width:250px;" id="admin-pdf-address"></p>
+                <p style="margin:0; color:#5A6170;">Ph: <span id="admin-pdf-phone"></span></p>
+            </div>
+            <div style="text-align:right;">
+                <p style="margin:0 0 5px;"><strong>Date:</strong> <span id="admin-pdf-date"></span></p>
+                <p style="margin:0;"><strong>Order ID:</strong> <span id="admin-pdf-order-id"></span></p>
+            </div>
+        </div>
+
+        <table style="width:100%; border-collapse:collapse; margin-bottom:30px;">
+            <thead>
+                <tr style="background:#F3F5F7; border-bottom:2px solid #E5E7EB;">
+                    <th style="padding:12px; text-align:left;">Product</th>
+                    <th style="padding:12px; text-align:right;">Qty</th>
+                </tr>
+            </thead>
+            <tbody id="admin-pdf-items"></tbody>
+        </table>
+
+        <div style="display:flex; justify-content:flex-end;">
+            <div style="width:300px;">
+                <div style="display:flex; justify-content:space-between; padding:12px 0; font-size:1.2rem; font-weight:700;">
+                    <span>Total Amount Paid:</span>
+                    <span style="color:#0D9F6E;">₹<span id="admin-pdf-total">0</span></span>
+                </div>
+            </div>
+        </div>
+        
+        <div style="text-align:center; margin-top:50px; color:#8B92A0; font-size:0.9rem;">
+            <p>Thank you for shopping with SSK & Co!</p>
+            <p>This is a system generated estimate.</p>
         </div>
     </div>
 
@@ -1071,11 +1132,24 @@
             });
         }
 
-        function viewItems(orderId, itemsStr) {
+        function viewItems(btn) {
+            const orderId = btn.getAttribute('data-order-id');
+            const itemsStr = btn.getAttribute('data-items');
             currentModalOrderId = orderId;
             document.getElementById('modal-order-id').innerText = orderId;
+            
+            // Populate PDF data
+            document.getElementById('admin-pdf-order-id').innerText = orderId;
+            document.getElementById('admin-pdf-name').innerText = btn.getAttribute('data-name');
+            document.getElementById('admin-pdf-address').innerText = btn.getAttribute('data-address');
+            document.getElementById('admin-pdf-phone').innerText = btn.getAttribute('data-phone');
+            document.getElementById('admin-pdf-date').innerText = btn.getAttribute('data-date');
+            document.getElementById('admin-pdf-total').innerText = btn.getAttribute('data-total');
+            
             const tbody = document.getElementById('modal-items-body');
+            const pdfBody = document.getElementById('admin-pdf-items');
             tbody.innerHTML = '';
+            pdfBody.innerHTML = '';
             
             const items = itemsStr.split('|');
             items.forEach((item) => {
@@ -1094,10 +1168,37 @@
                         <td style="color:var(--text-muted);">${weight}</td>
                     </tr>
                 `;
+                
+                pdfBody.innerHTML += `
+                    <tr style="border-bottom:1px solid #E5E7EB;">
+                        <td style="padding:12px; text-align:left;">
+                            <p style="margin:0; font-weight:600;">${name}</p>
+                            <p style="margin:0; font-size:0.85rem; color:#5A6170;">${weight}</p>
+                        </td>
+                        <td style="padding:12px; text-align:right;">${qty}</td>
+                    </tr>
+                `;
             });
             
             document.getElementById('mark-packed-btn').style.display = 'none';
             document.getElementById('items-modal').style.display = 'flex';
+        }
+
+        function downloadAdminPDF() {
+            const element = document.getElementById('admin-pdf-template');
+            element.style.display = 'block';
+            
+            const opt = {
+                margin:       10,
+                filename:     `SSK_Order_${currentModalOrderId}.pdf`,
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2 },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+            
+            html2pdf().set(opt).from(element).save().then(() => {
+                element.style.display = 'none';
+            });
         }
 
         function checkAllPacked() {

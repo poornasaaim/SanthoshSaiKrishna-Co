@@ -646,7 +646,7 @@
     <div id="auth-modal" class="modal">
         <div class="modal-content" id="login-form">
             <h3>Welcome Back</h3>
-            <input type="text" id="l-user" placeholder="Username">
+            <input type="text" id="l-user" placeholder="Email or Phone Number">
             <input type="password" id="l-pass" placeholder="Password">
             <button class="modal-btn" onclick="handleAuth('login')">Login</button>
             <span class="toggle-text" onclick="toggleAuth()">New here? Create an account →</span>
@@ -654,10 +654,10 @@
         </div>
         <div class="modal-content" id="register-form" style="display:none;">
             <h3>Create Account</h3>
-            <input type="text" id="r-user" placeholder="Username" >
+            <input type="text" id="r-user" placeholder="Email Address (@gmail.com)" >
             <input type="password" id="r-pass" placeholder="Password">
             <input type="text" id="r-name" placeholder="Full Name">
-            <input type="text" id="r-phone" placeholder="Phone Number">
+            <input type="text" id="r-phone" placeholder="Phone Number (10 digits)">
             <input type="text" id="r-address" placeholder="Delivery Address">
             <input type="text" id="r-pincode" placeholder="Pincode">
             <button class="modal-btn" onclick="handleAuth('register')">Register</button>
@@ -678,14 +678,17 @@
         let currentSlide = 0;
         const carousel = document.getElementById('main-carousel');
         const slides = carousel.getElementsByTagName('img');
-        const dots = document.querySelectorAll('.carousel-dot');
-
+        
+        function updateDots() {
+            document.querySelectorAll('.carousel-dot').forEach((dot, index) => {
+                dot.classList.toggle('active', index === currentSlide);
+            });
+        }
+        
         function goToSlide(index) {
             currentSlide = index;
-            if(slides.length > 0) {
-                carousel.scrollTo({ left: slides[currentSlide].offsetLeft, behavior: 'smooth' });
-            }
-            dots.forEach((d, i) => d.classList.toggle('active', i === index));
+            carousel.scrollTo({ left: slides[currentSlide].offsetLeft, behavior: 'smooth' });
+            updateDots();
         }
 
         setInterval(() => {
@@ -721,7 +724,7 @@
             window.location.reload();
         }
 
-        // Auth modal
+        // Auth Logic
         function openAuth() { document.getElementById('auth-modal').style.display = 'flex'; }
         function closeAuth() { document.getElementById('auth-modal').style.display = 'none'; }
         function toggleAuth() {
@@ -737,8 +740,14 @@
             const password = document.getElementById(prefix+'pass').value;
             
             // Validation
-            if(!username.toLowerCase().endsWith('@gmail.com')) {
-                return showToast("Username must be a valid @gmail.com email address", true);
+            if(action === 'register') {
+                if(!username.toLowerCase().endsWith('@gmail.com')) {
+                    return showToast("Username must be a valid @gmail.com email address", true);
+                }
+            } else if (action === 'login') {
+                if(!username.toLowerCase().endsWith('@gmail.com') && !/^\d{10}$/.test(username)) {
+                    return showToast("Please enter a valid @gmail.com email or 10-digit phone number", true);
+                }
             }
             
             const strongPasswordRegex = /^(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{8,}$/;
@@ -754,6 +763,9 @@
                 payload.address = document.getElementById('r-address').value;
                 payload.pincode = document.getElementById('r-pincode').value;
                 if(!payload.name) return showToast("Please fill all required fields", true);
+                if(!/^\d{10}$/.test(payload.phone)) {
+                    return showToast("Phone number must be exactly 10 digits", true);
+                }
             }
 
             fetch('/api/auth', {

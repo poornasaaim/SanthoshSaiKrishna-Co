@@ -470,6 +470,17 @@
             box-shadow: 0 0 25px rgba(13,159,110,0.4);
             border: 1px solid rgba(13,159,110,0.6);
         }
+        .qty-row {
+            display: flex; align-items: center; justify-content: space-between;
+            background: var(--accent-light); border-radius: var(--radius);
+            overflow: hidden; border: 1px solid var(--accent); margin-top: 10px;
+        }
+        .qty-row button {
+            background: transparent; color: var(--accent-dark); border: none;
+            width: 40px; height: 40px; font-size: 1.2rem; cursor: pointer; transition: background 0.2s;
+        }
+        .qty-row button:hover { background: rgba(13,159,110,0.1); }
+        .qty-row span { font-weight: 600; color: var(--accent-dark); }
     </style>
 </head>
 <body>
@@ -654,18 +665,17 @@
                         <h4 class="prod-name" onclick="openModal('${p.Product_ID}')">${p.Name}</h4>
                         <div class="price-display">₹<span id="${prefix}price-${p.Product_ID}">0</span></div>
                         <div class="controls">
-                            <select id="${prefix}weight-${p.Product_ID}" onchange="updateCardPrice('${p.Product_ID}', ${p.Price}, '${prefix}')">
+                            <select id="${prefix}weight-${p.Product_ID}" onchange="updateCardState('${p.Product_ID}', ${p.Price}, '${prefix}', '${p.Name}', '${p.Image_URL}')">
                                 ${optionsHtml}
                             </select>
-                            <input type="number" id="${prefix}qty-${p.Product_ID}" value="1" min="1" onchange="updateCardPrice('${p.Product_ID}', ${p.Price}, '${prefix}')">
                         </div>
-                        <button class="add-btn" onclick="addFromCard('${p.Product_ID}', '${p.Name}', '${p.Image_URL}', '${prefix}')">Add to Bag</button>
+                        <div id="${prefix}action-${p.Product_ID}" style="margin-top:auto;"></div>
                     </div>
                 </div>
                 `;
             }).join('');
             
-            products.forEach(p => updateCardPrice(p.Product_ID, p.Price, prefix));
+            products.forEach(p => updateCardState(p.Product_ID, p.Price, prefix, p.Name, p.Image_URL));
         }
 
         function renderTrendingItems() {
@@ -733,22 +743,72 @@
         }
 
         // --- Card Logic ---
-        function updateCardPrice(id, basePrice, prefix = '') {
+        function updateCardState(id, basePrice, prefix, name, image) {
             const weight = document.getElementById(`${prefix}weight-${id}`).value;
-            const qty = parseInt(document.getElementById(`${prefix}qty-${id}`).value) || 1;
             const unitPrice = calculateDynamicPrice(basePrice, weight);
-            document.getElementById(`${prefix}price-${id}`).innerText = unitPrice * qty;
+            
+            const cartItemIndex = cart.findIndex(i => i.id === id && i.weight === weight);
+            const actionContainer = document.getElementById(`${prefix}action-${id}`);
+            
+            if(cartItemIndex > -1) {
+                const item = cart[cartItemIndex];
+                document.getElementById(`${prefix}price-${id}`).innerText = item.totalAmt;
+                actionContainer.innerHTML = `
+                    <div class="qty-row">
+                        <button onclick="changeCardQty('${id}', '${prefix}', -1, '${name.replace(/'/g, "\\'")}', '${image}', ${basePrice})">−</button>
+                        <span>${item.qty}</span>
+                        <button onclick="changeCardQty('${id}', '${prefix}', 1, '${name.replace(/'/g, "\\'")}', '${image}', ${basePrice})">+</button>
+                    </div>
+                `;
+            } else {
+                document.getElementById(`${prefix}price-${id}`).innerText = unitPrice;
+                actionContainer.innerHTML = `
+                    <button class="add-btn" onclick="addFromCard('${id}', '${name.replace(/'/g, "\\'")}', '${image}', '${prefix}', ${basePrice})">Add to Bag</button>
+                `;
+            }
         }
 
-        function addFromCard(id, name, image, prefix = '') {
+        function changeCardQty(id, prefix, change, name, image, basePrice) {
             const weight = document.getElementById(`${prefix}weight-${id}`).value;
-            const qty = parseInt(document.getElementById(`${prefix}qty-${id}`).value) || 1;
-            const totalAmt = parseInt(document.getElementById(`${prefix}price-${id}`).innerText);
+            const cartItemIndex = cart.findIndex(i => i.id === id && i.weight === weight);
+            if(cartItemIndex === -1) return;
             
-            cart.push({ id, name, weight, qty, totalAmt, image });
+            let item = cart[cartItemIndex];
+            let unitPrice = item.totalAmt / item.qty;
+            let newQty = item.qty + change;
+            
+            if(newQty < 1) {
+                cart.splice(cartItemIndex, 1);
+            } else {
+                item.qty = newQty;
+                item.totalAmt = unitPrice * newQty;
+            }
+            
             localStorage.setItem('sskc_cart', JSON.stringify(cart));
             updateCartCount();
-            showToast(`${qty}x ${name} added to Bag!`);
+            refreshAllCardStates();
+        }
+
+        function addFromCard(id, name, image, prefix, basePrice) {
+            const weight = document.getElementById(`${prefix}weight-${id}`).value;
+            const unitPrice = calculateDynamicPrice(basePrice, weight);
+            
+            cart.push({ id, name, weight, qty: 1, totalAmt: unitPrice, image });
+            localStorage.setItem('sskc_cart', JSON.stringify(cart));
+            updateCartCount();
+            showToast(`1x ${name} added to Bag!`);
+            refreshAllCardStates();
+        }
+
+        function refreshAllCardStates() {
+            allProducts.forEach(p => {
+                const prefixes = ['', 't-'];
+                prefixes.forEach(prefix => {
+                    if(document.getElementById(`${prefix}weight-${p.Product_ID}`)) {
+                        updateCardState(p.Product_ID, p.Price, prefix, p.Name, p.Image_URL);
+                    }
+                });
+            });
         }
 
         // --- Modal Logic ---
