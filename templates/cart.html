@@ -799,7 +799,10 @@
             const address = document.getElementById('address').value;
             const pincode = document.getElementById('pincode').value;
             const total = document.getElementById('grand-total').innerText;
-            const itemsString = cart.map(i => `${i.qty}x ${i.name} (${i.weight})`).join(" | ");
+            const sub = document.getElementById('calc-sub').innerText || '0';
+            const ship = document.getElementById('calc-shipping').innerText || '0';
+            const disc = document.getElementById('calc-discount').innerText || '0';
+            const itemsString = cart.map(i => `${i.qty}x ${i.name} (${i.weight})`).join(" | ") + ` _BILL_ SUB:${sub}_SHIP:${ship}_DISC:${disc}`;
 
             fetch('/api/place_order', {
                 method: 'POST',

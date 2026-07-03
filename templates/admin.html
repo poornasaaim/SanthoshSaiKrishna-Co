@@ -964,6 +964,18 @@
 
         <div style="display:flex; justify-content:flex-end;">
             <div style="width:250px;">
+                <div style="display:flex; justify-content:space-between; padding:4px 0; border-bottom:1px solid #E5E7EB;">
+                    <span>Subtotal:</span>
+                    <strong>₹<span id="admin-pdf-sub">0</span></strong>
+                </div>
+                <div style="display:flex; justify-content:space-between; padding:4px 0; border-bottom:1px solid #E5E7EB;">
+                    <span>Shipping:</span>
+                    <strong>₹<span id="admin-pdf-ship">0</span></strong>
+                </div>
+                <div style="display:flex; justify-content:space-between; padding:4px 0; border-bottom:2px solid #1A1D23;">
+                    <span>Discount:</span>
+                    <strong style="color:#0D9F6E;">-₹<span id="admin-pdf-disc">0</span></strong>
+                </div>
                 <div style="display:flex; justify-content:space-between; padding:6px 0; font-size:1.05rem; font-weight:700;">
                     <span>Total Amount Paid:</span>
                     <span style="color:#0D9F6E;">₹<span id="admin-pdf-total">0</span></span>
@@ -1151,6 +1163,29 @@
             tbody.innerHTML = '';
             pdfBody.innerHTML = '';
             
+            let itemsStr = btn.getAttribute('data-items');
+            
+            // Extract billing if present (for new orders)
+            let sub = "0", ship = "0", disc = "0";
+            if (itemsStr.includes('_BILL_')) {
+                const parts = itemsStr.split('_BILL_');
+                itemsStr = parts[0];
+                const billing = parts[1].trim(); // e.g. SUB:500_SHIP:0_DISC:50
+                const bParts = billing.split('_');
+                bParts.forEach(bp => {
+                    if(bp.startsWith('SUB:')) sub = bp.replace('SUB:', '');
+                    if(bp.startsWith('SHIP:')) ship = bp.replace('SHIP:', '');
+                    if(bp.startsWith('DISC:')) disc = bp.replace('DISC:', '');
+                });
+            } else {
+                // Fallback for old orders where we don't have this data
+                sub = btn.getAttribute('data-total');
+            }
+            
+            document.getElementById('admin-pdf-sub').innerText = sub;
+            document.getElementById('admin-pdf-ship').innerText = ship;
+            document.getElementById('admin-pdf-disc').innerText = disc;
+
             const items = itemsStr.split('|');
             items.forEach((item) => {
                 item = item.trim();
