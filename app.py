@@ -228,8 +228,8 @@ def place_order():
     orders_sheet = sheet_db.worksheet("Orders")
     
     orders = orders_sheet.get_all_records()
-    # Order ID starts at ORDER1, then ORDER2...
-    order_id = f"ORDER{len(orders) + 1}"
+    # Order ID starts at ORD001, then ORD002...
+    order_id = f"ORD{len(orders) + 1:03d}"
     date = datetime.now().strftime("%Y-%m-%d")
     
     next_row = len(orders) + 2
@@ -237,7 +237,8 @@ def place_order():
     # Use update to safely overwrite completely empty but structurally existing rows
     orders_sheet.update(f"A{next_row}", [[
         order_id, date, data['username'], data['phone'], 
-        data['items'], data['total'], data['address'], data['pincode'], "Received"
+        data['items'], data['total'], data['address'], data['pincode'], "Received",
+        data.get('subtotal', '0'), data.get('shipping', '0'), data.get('discount', '0')
     ]])
     
     return jsonify({"status": "success", "order_id": order_id})

@@ -813,7 +813,10 @@
                     address: address, 
                     pincode: pincode, 
                     total: total, 
-                    items: itemsString 
+                    items: itemsString,
+                    subtotal: sub,
+                    shipping: ship,
+                    discount: disc
                 })
             })
             .then(res => res.json())
