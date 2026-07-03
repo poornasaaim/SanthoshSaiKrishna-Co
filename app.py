@@ -168,7 +168,13 @@ def auth():
     elif data['action'] == 'register':
         if any(c['Username'] == data['username'] for c in customers):
             return jsonify({"status": "error", "message": "Email already exists"})
-        customers_sheet.append_row([data['username'], data['password'], data['name'], data['phone'], data['address'], data['pincode']])
+        
+        next_row = len(customers) + 2
+        customers_sheet.update(f"A{next_row}", [[
+            data['username'], data['password'], data['name'], 
+            data['phone'], data['address'], data['pincode']
+        ]])
+        
         return jsonify({"status": "success"})
 
 @app.route('/api/validate_checkout', methods=['POST'])
@@ -220,14 +226,20 @@ def validate_checkout():
 def place_order():
     data = request.json
     orders_sheet = sheet_db.worksheet("Orders")
-    # Using just len() will start from ORD1 since row 1 is the header
-    order_id = f"ORD{len(orders_sheet.get_all_values())}"
+    
+    orders = orders_sheet.get_all_records()
+    # Order ID starts at ORDER1, then ORDER2...
+    order_id = f"ORDER{len(orders) + 1}"
     date = datetime.now().strftime("%Y-%m-%d")
     
-    orders_sheet.append_row([
+    next_row = len(orders) + 2
+    
+    # Use update to safely overwrite completely empty but structurally existing rows
+    orders_sheet.update(f"A{next_row}", [[
         order_id, date, data['username'], data['phone'], 
         data['items'], data['total'], data['address'], data['pincode'], "Received"
-    ])
+    ]])
+    
     return jsonify({"status": "success", "order_id": order_id})
 
 # ===== NEW ADMIN CRUD API ROUTES =====
